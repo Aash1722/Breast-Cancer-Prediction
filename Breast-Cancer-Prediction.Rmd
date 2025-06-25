@@ -1,0 +1,908 @@
+---
+output:
+  pdf_document:
+    extra_dependencies:
+    - bbm
+    - xcolor
+    - bm
+    - float
+    - multirow
+  html_document:
+    df_print: paged
+
+---
+\begin{titlepage}
+\centering
+\vfill
+{\LARGE \bfseries Breast Cancer Prediction\par}
+\vfill
+{\large 
+\begin{tabular}{c}
+Aash Makwana (UCID: 30223739) \\\\
+\end{tabular}\par}
+\vfill
+{\large Stat 635 Project \par}
+\vfill
+{\large \textit{University of Calgary, Mathematics and Statistics Department}}
+\\
+{\large \textit{STAT 635 - Generalized Linear Model}}\\
+\end{titlepage}
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,Eecho = F,eval = T,message = F, warning = F, fig.pos = 'H')
+```
+\newpage 
+\tableofcontents
+\newpage
+\listoffigures
+\listoftables
+
+\newpage
+
+
+# 1. Introduction 
+
+Breast cancer is one of the most common cancers globally, and it remains a major health concern for women worldwide. It is the leading cause of cancer-related deaths among women, although survival rates have improved significantly over the past few decades due to advances in early detection, treatment, and awareness. Breast cancer occurs when cells in the breast tissue begin to grow uncontrollably. These cells can form a lump or mass, which may be malignant (cancerous) or benign (non-cancerous).
+
+There are two main types of breast cancer: Invasive Ductal Carcinoma (IDC): IDC is the most common form of breast cancer, making up approximately 70-80% of all cases. It begins in the milk ducts and then invades surrounding tissue, Invasive Lobular Carcinoma (ILC): ILC starts in the milk-producing lobules of the breast and can spread to other parts of the body. Other less common types include inflammatory breast cancer, triple-negative breast cancer, and ductal carcinoma in situ (DCIS), which is a non-invasive cancer confined to the ducts.
+
+The risk of developing breast cancer is influenced by various factors, both modifiable and non-modifiable. Non-modifiable factors include age, gender, family history, genetic mutations (such as BRCA1 and BRCA2), and a personal history of breast cancer. Modifiable risk factors include lifestyle factors such as diet, physical activity, alcohol consumption, and hormonal treatments like hormone replacement therapy (HRT), Genetic Mutations: Mutations in genes such as BRCA1, BRCA2, and TP53 significantly increase the risk of breast cancer. Individuals with a family history of these genetic mutations are at a higher risk, Age: The risk of breast cancer increases with age, with the majority of cases diagnosed in women over the age of 50, Hormonal Factors: Prolonged exposure to estrogen (e.g., early menarche, late menopause, and hormone replacement therapy) can increase the risk of breast cancer.
+
+Early detection of breast cancer is critical for improving treatment outcomes. Several diagnostic techniques are employed to detect and diagnose breast cancer:
+- Mammography: This is the most commonly used screening tool. It involves X-ray imaging of the breast tissue to detect abnormalities such as lumps or calcifications.
+- Ultrasound: An ultrasound uses sound waves to create images of the internal structures of the breast, helping to differentiate between solid tumors and fluid-filled cysts.
+- Biopsy: A biopsy involves removing a small sample of tissue from the breast for examination under a microscope. It is the definitive method for diagnosing whether a lump is malignant or benign.
+
+The treatment of breast cancer depends on various factors, including the stage of cancer, the type of breast cancer, the patient's age, and overall health. Common treatment options include: Surgery: The goal of surgery is to remove the tumor and, in some cases, the entire breast (mastectomy), Radiation Therapy: High-energy rays are used to target and destroy cancer cells, Chemotherapy: Chemotherapy drugs are used to kill or slow the growth of cancer cells. It can be administered before (neoadjuvant) or after (adjuvant) surgery.
+
+While machine learning models can improve the accuracy of breast cancer diagnosis, several challenges remain:
+- Data Quality: High-quality data is crucial for model accuracy. Missing data, noisy variables, or unbalanced datasets can lead to overfitting or biased predictions.
+- Interpretability: Many machine learning models, particularly deep learning models, are considered “black boxes,” meaning their predictions are hard to interpret. This makes it challenging to understand why a model classifies a tumor as malignant or benign.
+- Clinical Integration: Integrating prediction models into clinical practice requires robust validation and regulatory approval to ensure they are safe and effective for patient care.
+
+Breast cancer remains a major public health issue, but advancements in medical research, diagnostic technologies, and treatment options have significantly improved survival rates. Machine learning methods provide powerful tools for predicting whether a breast tumor is malignant or benign, which can assist clinicians in making more informed decisions. The combination of traditional medical expertise and machine learning holds promise for improving the accuracy and timeliness of breast cancer diagnoses, ultimately leading to better patient outcomes.
+
+
+\newpage
+
+# 2. Description of the dataset
+
+The Breast Cancer Wisconsin (Diagnostic) Dataset is a collection of data points that are used to classify whether a tumor is benign or malignant based on various features derived from digitized images of breast mass samples. The dataset was initially gathered by Dr. William H. Wolberg from the University of Wisconsin Hospitals, Madison, and it has been widely used for machine learning and data analysis tasks, particularly in binary classification problems.
+
+```{r figure1, echo=FALSE, fig.cap="Initial Approximate Boundaries of Cell Nuclei", fig.align='center', fig.show='hold',out.width="50%", out.height="50%"}
+knitr::include_graphics("figure1.png")
+```
+
+
+This dataset is designed to provide a foundation for building predictive models that can assist medical professionals in identifying whether breast cancer cells are malignant or benign based on a set of measurable tumor characteristics.
+
+The dataset consists of 569 instances, each representing a breast cancer sample. Each instance includes 10 real-valued feature columns, which are numerical values derived from the digitized image of a breast mass. These 10 real-valued data is further modified to 30 real0-valued features. For example: The data collected for radius of cell nuclei is modified to radius_mean (mean of radius), radius_se (standard deviation of radius) and radius_worst (mean of 3 largest values of radius.) These features describe various aspects of the tumor, such as its size, texture, smoothness, and shape. The dataset is typically used for a classification task where the goal is to predict whether the tumor is "Malignant" (M) or "Benign" (B). Most of the features in this dataset are numerical and continuous, and they are scaled on a different range, making normalization or standardization important when building machine learning models. Below table 1 shows the 10 main real-valued features, in original dataset this features are modified to 30 features, _mean, _se and _worst as explained above.
+
+\begin{table}[h]
+\begin{center}
+\caption{Table containing variables and their description} 
+\label{table.1}
+\resizebox{\textwidth}{!}
+{
+\begin{tabular}{|c|c|c|c|} 
+\hline
+No & Variable & Type & Description  \\  \hline
+1    &     id  & Categorical &  ID number \\
+2    &     diagnosis  &  Binary &   (target) M = malignant, B = benign  \\
+3    &     radius\_mean  &  Continuous & radius: mean of distances from centre to points
+on the perimeter  \\
+4    &     texture\_mean  &    Continuous & texture: standard deviation of gray-scale values \\
+5    &    perimeter\_mean  &     Continuous & perimeter \\
+6    &     area\_mean & Continuous & area \\
+7    &      smoothness\_mean & Continuous & smoothness: local variation in radius lengths \\
+8    &      compactness\_mean  &   Continuous & compactness: perimeter$^2$ / area - 1.0 \\ 
+9    &     concativity\_mean  & Continuous &  concavity: severity of concave portions of the contour \\
+10   &     concave\_points\_mean  & Continuous &  concave points: number of concave portions of the contour \\
+11   &     symmetry\_mean  & Continuous &  symmetry \\ \hline
+\end{tabular}
+}
+\end{center}
+\end{table}
+
+\newpage 
+
+# 3. Question of Interest
+
+The central aim of this project is to develop a predictive model that can accurately classify whether a breast cancer tumor is malignant or benign based on a set of tumor characteristics. Early detection and accurate classification of breast cancer are crucial for effective treatment and improved patient outcomes. With advancements in machine learning and data science, predictive models can assist healthcare professionals in making more informed decisions, offering the potential for earlier intervention and personalized treatment plans.
+
+```{r figure2, echo=FALSE, fig.cap="Distributions of the Breast Cancer Diagnosis", fig.align='center', fig.show='hold',out.width="50%", out.height="50%"}
+knitr::include_graphics("figure2.png")
+```
+
+Out of 569 observations, there are 357 benign samples and 212 malignant samples in the dataset, meaning that the data is somewhat imbalanced, with more malignant instances than benign.
+
+\newpage
+
+# 4. Exploratory Data Analysis
+
+## 4.1 Correlation Matrix
+
+The correlation matrix helps to understand the relationships between different variables. In a dataset with multiple features, some features may be highly correlated with each other, which can affect model performance (for example, causing multicollinearity in linear models). It's important to identify which features are highly correlated, spot any potential redundancy between features, guide feature selection or dimensionality reduction if needed.
+
+```{r figure3, echo=FALSE, fig.cap="Correlation plot", fig.align='center', fig.show='hold',out.width="80%", out.height="80%"}
+knitr::include_graphics("figure3.png")
+```
+
+## 4.2 Visualizing the data distributions
+
+For below plots, I have only plotted the ones which are not highly correlated as we are going to remove multicollinearity during Data preprocessing.
+
+```{r figure4, echo=FALSE, fig.cap="Distributions of the quantitative variables", fig.align='center', fig.show='hold',out.width="70%", out.height="70%"}
+knitr::include_graphics("figure4.png")
+```
+
+```{r figure5, echo=FALSE, fig.cap="Distributions of the quantitative variables", fig.align='center', fig.show='hold',out.width="70%", out.height="70%"}
+knitr::include_graphics("figure5.png")
+```
+
+```{r figure6, echo=FALSE, fig.cap="Distributions of the quantitative variables", fig.align='center', fig.show='hold',out.width="70%", out.height="70%"}
+knitr::include_graphics("figure6.png")
+```
+
+```{r figure7, echo=FALSE, fig.cap="Distributions of the quantitative variables", fig.align='center', fig.show='hold',out.width="40%", out.height="40%"}
+knitr::include_graphics("figure7.png")
+```
+
+\newpage
+
+# 5 Data Preprocessing
+
+First step was to check if there are any missing values, but the data set doesnot contain any missing values. Now we will move further to handle highly correlated features.
+
+## 5.1 Multicollinearity
+
+In the process of building a predictive model, especially when using regression-based algorithms like Logistic Regression, one important aspect to consider is multicollinearity. Multicollinearity occurs when two or more independent features in a dataset are highly correlated with each other. This can cause several issues in the model-building process, particularly for Logistic Regression, which relies on the assumption that the predictors are not highly correlated. 
+
+To mitigate the impact of multicollinearity, I will remove highly collinear features before fitting the Logistic Regression model. Specifically, I will calculate the correlation matrix of the features and identify pairs of features with a correlation coefficient greater than 0.8. These highly correlated features will be removed, as they contribute redundant information to the model. The threshold of 0.8 is commonly used to identify and remove features that are highly correlated. This value is chosen to capture strong correlations, while leaving moderate correlations (such as 0.6 or 0.7) intact. By removing features with a correlation greater than 0.8, we reduce redundancy and retain only the most relevant predictors, ensuring that the model remains stable and interpretable.
+
+New Data set after removing highly correlated features we are left with this final features:
+
+diagnosis, area_mean, symmetry_mean, fractal_dimension_mean, radius_se, texture_se, smoothness_se, concavity_se, concave.points_se, symmetry_se, fractal_dimension_se, texture_worst, smoothness_worst, symmetry_worst, fractal_dimension_worst.
+
+## 5.2 Cross-Validation
+
+Cross-validation is a key technique for assessing the performance of a machine learning model while minimizing the risk of overfitting. It helps ensure that the model generalizes well to unseen data and is not merely memorizing the training data. In this project, we perform k-fold cross-validation to evaluate the performance of our predictive model for breast cancer classification. Cross-validation involves partitioning the data into multiple subsets (or "folds") and then training and testing the model multiple times. The model is trained on several different subsets of the data and tested on the remaining fold. This process is repeated for each fold, and the overall performance is averaged to provide a more robust estimate of model performance. In this project, I have chosen to use k = 10 folds for cross-validation. This is a common choice because: It strikes a balance between bias and variance: With 10 folds, we get a sufficient number of training and testing iterations, reducing the bias in model performance estimates while still keeping computation time manageable, It provides a stable estimate of model performance: Using 10 folds is a widely accepted practice and tends to give reliable and consistent results for many types of models.
+
+Below is the list of 10 folds:
+
+Fold01: int [1:57] 9 11 22 39 58 79 85 108 127 132 ... \
+Fold02: int [1:58] 30 52 63 71 82 95 96 106 117 131 ...\
+Fold03: int [1:57] 3 13 19 36 51 55 70 74 78 94 ...\
+Fold04: int [1:57] 2 10 34 40 41 48 49 56 87 89 ...\
+Fold05: int [1:56] 16 18 28 42 44 53 66 67 84 86 ...\
+Fold06: int [1:57] 21 38 47 69 76 81 97 104 120 121 ...\
+Fold07: int [1:56] 6 12 17 23 37 77 90 91 99 116 ...\
+Fold08: int [1:56] 5 14 20 32 33 35 45 61 72 80 ...\
+Fold09: int [1:57] 1 7 8 24 31 43 54 59 62 73 ...\
+Fold10: int [1:58] 4 15 25 26 27 29 46 50 57 60 ...\
+
+\newpage
+
+# 6. Statistical Analysis
+
+In this phase of the project, I will train and evaluate several machine learning models to predict whether a breast cancer tumor is malignant or benign. Specifically, I will focus on Logistic Regression, a widely-used model for binary classification, and incorporate Elastic Net regularization, which combines both Lasso (L1) and Ridge (L2) regularization techniques. Regularization helps prevent overfitting by penalizing overly complex models, improving generalization to unseen data. I will compare the performance of these models using cross-validation and assess their effectiveness in accurately predicting the malignancy of tumors.
+
+## 6.1 Logistic Regression
+
+In this stage of the project, we will apply Logistic Regression to predict whether a breast cancer tumor is malignant or benign. Logistic Regression is a widely-used statistical method for binary classification, where the goal is to model the probability of a binary outcome based on a set of predictor variables.
+
+To ensure the model performs well and avoids issues related to multicollinearity, we will use only the features that remain after removing highly collinear variables. Multicollinearity can lead to unstable estimates of the regression coefficients, which can affect the model’s performance and interpretability. By removing correlated features (those with a correlation coefficient above 0.8), we aim to improve the stability and reliability of the Logistic Regression model. The model will be trained using cross-validation to assess its generalization ability, ensuring that it is not overfitting to the training data.
+
+For this logistic model, the formula of the model is 
+
+\begin{equation}
+ \text{log}\frac{p}{1-p} = \beta_0 + \sum_{i=1}^{14} \beta_i x_i
+\end{equation}
+
+where $p$ is the probability to get the heart disease, and $\beta_i$, $i= 1,2,\ldots, 14$ is the coefficients of the parameter, $\beta_0$ is the intercept. So we fitted the model, and got the estimated parameters shown in the table below.
+
+\begin{table}[h]
+\begin{center}
+\caption{Summary of the full Logistic regression model} \label{Table.5}
+\begin{tabular}{|c|c|c|c|} \hline
+Variable     & Coefficient & Std. Error & p-value   \\ \hline
+Intercept     & -5.561e+01  & 5.40e-06 & ***    \\
+area\_mean & 1.894e-02  & 2.48e-06  & ***  \\
+symmetry\_mean  & -2.287e+00  & 0.928164  & Not Significant  \\
+fractal\_dimension\_mean & -6.664e+01  & 0.644640  & Not Signifciant    \\
+radius\_se & 2.115e+01  & 0.000768  &    ***  \\ 
+texture\_se & -2.336e+00  & 0.078993  & Not Significant     \\ 
+smoothness\_se & 9.413e+01  & 0.643839  & Not Significant    \\
+concavity\_se  & 1.668e+01  & 0.272138  & Not Significant     \\ 
+concave.points\_se  & 3.646e+02   & 0.021276   & *    \\ 
+symmtery\_se  & -3.044e+01   & 0.743683   & Not Significant     \\ 
+fractal\_dimension\_se  & -1.790e+03  & 0.002511   & ** \\ 
+texture\_worst  & 5.389e-01   & 0.000114   & ***     \\ 
+smoothness\_worst & 8.063e+01   & 0.013170   & *     \\ 
+symmetry\_worst  & 1.551e+01   & 0.263348   & Not Significant     \\ 
+fractal\_dimension\_worst  & 1.746e+02   & 0.031778   & *     \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+As we can see from the table, there are some variables that are not significant. I will drop some
+variables to make the model simpler. I choose backward step selection to do so. The new logistic regression model equation is given by,
+
+\begin{equation}
+ \text{log}\frac{p}{1-p} = \beta_0 + \sum_{i=1}^{7} \beta_i y_i
+\end{equation}
+
+where $p$ is the probability to get the heart disease, and $\beta_i$, $i= 1,2,\ldots, 14$ is the coefficients of the parameters (area\_mean, radius\_se, concave.points\_se, fractal\_dimension\_se, texture\_worst, smoothness\_worst, fractal\_dimension\_worst ), $\beta_0$ is the intercept. So we fitted the model, and got the estimated parameters shown in the table below.
+
+\begin{table}[h]
+\begin{center}
+\caption{Summary of the full Logistic regression model} \label{Table.6}
+\begin{tabular}{|c|c|c|c|} \hline
+Variable     & Coefficient & Std. Error & p-value   \\ \hline
+Intercept     & -5.288e+01   & 2.17e-10  & ***    \\
+area\_mean & 2.046e-02  & 8.06E-09  & ***  \\
+radius\_se & 1.355e+01  & 0.000364   &    ***  \\ 
+concave.points\_se  & 3.999e+02    & 0.000849     & ***    \\ 
+fractal\_dimension\_se  & -1.792e+03   & 1.49e-05    & *** \\ 
+texture\_worst  & 3.738e-01    & 1.59e-07    & ***     \\ 
+smoothness\_worst & 6.730e+01    & 0.003229    & **     \\ 
+fractal\_dimension\_worst  & 2.033e+02    & 6.67e-06    & ***     \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Now for statistical analysis we will use different types of methods consisting of Model Accuracy, Receiver operating characteristics (ROC), Psuedo-R square, Deviance Goodness of Fit, The Akaike information criterion (AIC) and Binned Residual Plots.
+
+### 6.1.1 Model Accuracy
+
+In logistic regression, accuracy is a commonly used metric to evaluate the performance of the model. It measures the proportion of correctly predicted instances (both true positives and true negatives) out of all predictions made by the model. However, accuracy alone may not provide a complete picture, especially when dealing with imbalanced datasets.
+
+A confusion matrix is a more detailed tool for assessing the performance of a logistic regression model. It displays the counts of the following four categories, true positives, true negative, false positives, false negatives. From the R code I calculated model accuracy,
+
+\begin{table}[h]
+\begin{center}
+\caption{Confusion matrix} \label{Table.8}
+\begin{tabular}{|cc|c|c|} \hline
+    &       & \multicolumn{2}{c|}{Actual Class} \\ \hline
+    & & Positve (Malignant) & Negative (Benign)   \\ \hline
+  \multirow{2}{*}{Predicted Class} & Positive (Malignant) & True Positive (TP) = 349 & False Positive (FP) = 8 \\ \cline{2-4}
+      & Negative (Benign) & False Negative (FN) = 8 & True Negative (TN) = 204  \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+Different statistics can be calculated using the confusion matrix as follows:
+
+\begin{equation}
+ \text{Accuracy} = \frac{TP+TN}{TP+TN+FP+FN} = 0.9719
+\end{equation}
+
+\begin{equation}
+ \text{Precision} = \frac{TP}{TP+FP} = 0.9623
+\end{equation}
+
+\begin{equation}
+ \text{Recall} = \frac{TP}{TP+FN} = 0.9623
+\end{equation}
+
+\begin{equation}
+ \text{F1 score} = 2 \times \frac{\text{Precision}\times \text{Recall}}{\text{Precision} + \text{Recall}} = 0.9623
+\end{equation}
+
+- Accuracy: 0.9719, Accuracy is the proportion of correct predictions (both true positives and true negatives) out of all predictions made by the model. An accuracy of 0.9719 means that approximately 97.19% of the predictions made by your logistic regression model were correct. This indicates that the model is performing very well in terms of overall prediction accuracy. The model is correctly predicting almost 97% of all cases, which suggests that the model is performing well overall.
+
+- F1 Score: 0.9623, The F1 score is the harmonic mean of precision and recall, providing a balanced measure of the model's ability to correctly identify positive cases (true positives) and avoid false positives and false negatives. An F1 score of 0.9623 indicates that the model is performing very well with a strong balance between precision and recall. The F1 score is also very high, indicating that the model is effectively balancing precision and recall, meaning that it not only predicts positives accurately (precision) but also identifies most of the positive cases (recall).
+
+### 6.1.2 Receiver operating characteristics (ROC)
+
+The Receiver Operating Characteristic (ROC) curve is a graphical representation of the performance of a classification model at all classification thresholds. It is widely used for evaluating binary classifiers like logistic regression.
+
+The ROC curve plots the following two metrics:
+
+- True Positive Rate also known as Recall or Sensitivity
+
+- False Positive Rate 
+
+The best possible classifier will have a TPR (sensitivity) of 1 and a FPR (fallout) of 0, meaning it correctly classifies all positive cases and never misclassifies a negative case as positive. This would result in a point in the top-left corner of the ROC curve.The closer the ROC curve is to the top-left corner, the better the model. A curve that bows toward the upper left indicates that the model has a high true positive rate and a low false positive rate.
+
+```{r figure8, echo=FALSE, fig.cap="ROC curve of Logistic Regression", fig.align='center', fig.show='hold',out.width="60%", out.height="60%"}
+knitr::include_graphics("figure8.png")
+```
+
+Area under the curve: AUC (Area Under the Curve) is a numerical summary of the ROC curve. It quantifies the overall ability of the model to distinguish between positive and negative cases. A higher AUC indicates a better model. In your case, if the ROC curve shows an AUC close to 1, it suggests that your logistic regression model has excellent discriminatory power.
+
+- For our trained model, AUC $=0.960$
+
+### 6.1.3 Deviance Goodness of Fit
+
+In this step, I calculated the residual deviance for the final models. We have the null hypothesis that is 
+- $H_0$: the model fits well vs $H_1$: the model fits poorly.
+
+In logistic regression, deviance is a measure of the goodness of fit of a model. It is derived from the likelihood ratio test and compares the likelihood of the model in question to the likelihood of a baseline model. The null deviance represents the deviance of a model that includes no predictors, i.e., a model that only predicts the mean of the outcome variable (the baseline model). This is a measure of how well the outcome variable can be predicted with no information other than the overall distribution of the target variable (e.g., class probabilities for logistic regression). The residual deviance represents the deviance of the fitted logistic regression model, which includes the predictors (features). It measures the goodness of fit of the model with all the predictors included. The deviance goodness of fit is the difference between the null deviance and the residual deviance, measures how much better the fitted model is compared to the null model.
+
+- The null deviance is 751.44, which is the deviance of the model with just the intercept (no features).
+
+- The residual deviance is 77.08, which is much lower than the null deviance. This suggests that our model with predictors is a much better fit than the baseline model (with no predictors).
+
+- The deviance goodness of fit if $(751.44 - 77.08) = 674.36$, indicates that the inclusion of your predictors has resulted in a substantial improvement in model fit, as compared to the null model.
+
+### 6.1.4 McFadden Psuedo R-Square
+
+McFadden’s Pseudo R-squared is a statistic used to assess the fit of a logistic regression model. It is similar to the R-squared used in linear regression, but it is specifically designed for models like logistic regression where the dependent variable is binary. Unlike traditional R-squared, which represents the proportion of variance explained by the model, McFadden’s Pseudo R-squared does not have a direct interpretation in terms of "variance explained," but it still provides a measure of how well the model fits the data. McFadden’s Pseudo R-squared is calculated as: 
+
+\begin{equation}
+ R^2_{MF} = 1 - \frac{\text{log-likelihood of the fitted model}}{\text{log-likelihood of the null model}}
+\end{equation}
+
+McFadden’s Pseudo R-squared values typically range from 0 to 1, but they are generally much lower than R-squared values in linear regression. $R^2 = 0$ indicates that the fitted model does not improve on the null model at all (i.e., the predictors do not explain any of the variability in the outcome). $R^2$ close to 1 suggests a perfect model, where the fitted model explains almost all of the variability in the dependent variable.
+
+- For our model, McFadden’s Pseudo R-squared = 0.8974199 which justifies a good fit.
+
+### 6.1.5 Binned Residual Plot
+
+A Binned Residuals Plot is a diagnostic plot used to evaluate the fit of a logistic regression model (or other predictive models) by visualizing the residuals in relation to the predicted probabilities. It is a way of assessing whether the model's predictions are well-calibrated across different levels of predicted probabilities. The plot helps identify if the model is systematically underestimating or overestimating the likelihood of certain outcomes. The Binned Residuals Plot shows the mean residuals (the difference between the observed and predicted outcomes) for different bins of predicted probabilities. It plots these residuals against the predicted probability values, with each bin representing a range of predicted probabilities. This is particularly useful in logistic regression, where the outcome is binary and the predicted values are probabilities between 0 and 1. In a well-calibrated model, the residuals should be close to zero across all bins of predicted probabilities. This indicates that the model’s predicted probabilities are close to the actual observed outcomes, and there is no systematic over- or under-prediction across any predicted probability ranges. A well-calibrated model should have residuals that are centered around zero across all bins of predicted probability. If the residuals significantly deviate from zero, it suggests that the model may not be properly calibrated, and the predicted probabilities may not match the true probabilities.
+
+
+
+```{r figure9, echo=FALSE, fig.cap="Binned Residual Plot", fig.align='center', fig.show='hold',out.width="90%", out.height="90%"}
+knitr::include_graphics("figure9.png")
+```
+
+Since most of the residuals lie within the confidence limits and also most of the residuals are centered around zeo, our model shows a good fit.
+
+\newpage
+
+## 6.2 Elastic Net Regularization (Lasso and Ridge Regression)
+
+Elastic Net is a regularization technique used in linear models, particularly when the goal is to improve model generalization, handle multicollinearity, and perform feature selection. It combines the strengths of two other regularization methods: Lasso (Least Absolute Shrinkage and Selection Operator) and Ridge regression.
+
+Elastic Net is particularly useful when the number of predictors (features) is large or when there is multicollinearity (i.e., high correlation) among the predictors. Lasso adds a penalty term proportional to the absolute value of the coefficients. The L1 penalty encourages sparsity in the model, meaning that it drives some coefficients to exactly zero. This can be useful for feature selection because predictors with coefficients of zero are effectively excluded from the model. Ridge adds a penalty term proportional to the square of the coefficients. The L2 penalty shrinks the coefficients toward zero but does not set them exactly to zero, meaning that all predictors remain in the model, though their effects are diminished. 
+
+Elastic Net is a regularized regression technique that combines the penalties of Lasso (L1 regularization) and Ridge (L2 regularization), making it particularly useful when dealing with multicollinearity and large feature sets.
+
+Performing this model using "glmnet" method in R we get the following output as shown in below table:
+
+\begin{table}[h]
+\begin{center}
+\caption{Summary of the full Elastic net regularization model} \label{Table.6}
+\begin{tabular}{|c|c|c|c|c|} \hline
+alpha     & lambda & ROC & Sens  & Spec   \\ \hline
+0.10 &  0.0007673665 & 0.9853296 & 0.9688880 & 0.9135023 \\
+0.10 &  0.0076736649  & 0.9887056 & 0.9763520 & 0.9187379 \\
+  0.10  & 0.0767366489 & 0.9894536 & 0.9866150 & 0.8920281 \\ 
+  0.55  & 0.0007673665  & 0.9845430 & 0.9676428 & 0.9113971 \\ 
+  0.55  & 0.0076736649 &  0.9875209 & 0.9757290 & 0.9140176 \\
+  0.55  & 0.0767366489 & 0.9874432 &  0.9887947 & 0.8632075 \\
+  1.00  & 0.0007673665  & 0.9816840 & 0.9617209 & 0.9024662 \\
+  1.00  & 0.0076736649  & 0.9844558 & 0.9704321 & 0.9082337 \\
+  1.00  & 0.0767366489  & 0.9835438 & 0.9869285 & 0.8364618 \\ \hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+This table presents the results of a logistic regression model, using different values for alpha and lambda in an Elastic Net regularization framework. The output provides performance metrics, including:
+
+- ROC (Receiver Operating Characteristic curve): Measures the model's ability to distinguish between classes.
+- Sens (Sensitivity): Also known as Recall or True Positive Rate, indicates the proportion of actual positives (malignant cases) correctly identified by the model.
+- Spec (Specificity): Indicates the proportion of actual negatives (benign cases) correctly identified by the model.
+
+The alpha parameter controls the mix between Lasso (L1) and Ridge (L2) regularization in Elastic Net. Alpha = 0.10: This means the model is more influenced by Lasso regularization (closer to Lasso). Alpha = 0.55: This is a middle-ground between Lasso and Ridge, meaning the model uses both L1 and L2 penalties. Alpha = 1.00: The model uses Ridge regularization (L2 penalty) exclusively.
+
+The lambda parameter controls the strength of the regularization. Larger lambda values result in stronger regularization (shrinking coefficients towards zero). As lambda increases, the model becomes simpler, reducing the potential for overfitting.
+
+The Elastic Net regularization with alpha = 0.55 (a balanced L1 and L2 penalty) and moderate values of lambda seems to be the most optimal configuration in terms of balancing ROC, sensitivity, and specificity. Specifically, lambda values around 0.0077 give the best performance overall, especially in distinguishing malignant (positive) and benign (negative) cases giving ROC value of 0.9875209.
+
+### 6.2.1 Receiver operating characteristics (ROC)
+
+
+```{r figure10, echo=FALSE, fig.cap="ROC curve of Elastic Net Regularization", fig.align='center', fig.show='hold',out.width="80%", out.height="80%"}
+knitr::include_graphics("figure10.png")
+```
+
+From the above ROC plot, it is justified that we get the best model fit for $\alpha = 0.55$ and $\lambda=0.00767$. For this we have ROC = 0.9875209 with Sensitivity = 0.9757290 and Specificity = 0.9140176. Below plot shows different value of AUC for different values of lambda.
+
+
+```{r figure11, echo=FALSE, fig.cap="AUC for different lambda", fig.align='center', fig.show='hold',out.width="80%", out.height="80%"}
+knitr::include_graphics("figure11.png")
+```
+
+### 6.2.2 Importance of variables
+
+Below plot shows the ten features which are most important for glmnet model. This shows fractal\_dimension\_se is the most important feature.
+
+```{r figure12, echo=FALSE, fig.cap="Importance of variables", fig.align='center', fig.show='hold',out.width="80%", out.height="80%"}
+knitr::include_graphics("figure12.png")
+```
+
+\newpage
+
+# 7 Conclusion
+
+In this study, we developed and evaluated two type of predictive models for classifying breast cancer as either malignant or benign: logistic regression model and an elastic net regularization model.
+
+- Logistic Regression Model:
+The final logistic regression model achieved an accuracy of 0.9719, indicating that the model correctly classified $97.19\%$ of the samples, which reflects a strong overall performance. For this model we get AUC = 0.960 with precision and recall of 0.9623.
+
+- Elastic net regularization Model:
+The elastic net model with $\alpha$ = 0.55 and $\lambda$ = 0.00767 performed exceptionally well, with an ROC score of 0.9875, indicating that the model has an excellent ability to distinguish between the two classes (malignant and benign). The Sensitivity of 0.9757 indicates the high detection rates for malignant tumors. 
+
+The developed logistic regression model and elastic net regularization model achieved a satisfactory performance in predicting breast cancer (malignant or benign), as evidenced by the accuracy and sensitivity of the model. 
+
+Both models demonstrate high classification accuracy and robustness, with the logistic regression model excelling in terms of precision and recall, while the elastic net regularization model shows superior performance in terms of ROC and sensitivity. These results indicate that both models are reliable tools for predicting the malignancy of breast tumors and can be used to assist in clinical decision-making. However, depending on the specific application or the trade-off between sensitivity and specificity, either model could be preferred in practice.
+
+In conclusion, the combination of logistic regression and elastic net regularization provides complementary strengths in breast cancer classification, offering valuable insights into potential treatment pathways and aiding in early diagnosis. 
+
+\newpage
+
+# 8 References 
+
+[1] Street, W.N., Wolberg, W.H., & Mangasarian, O.L. (1993). Nuclear feature extraction for breast tumor diagnosis. Electronic imaging.
+
+[2] Wolberg W, Mangasarian O, Street N, Street W. Breast Cancer Wisconsin (Diagnostic) [dataset]. 1993. UCI Machine Learning Repository. Available from: https://doi.org/10.24432/
+C5DW2B.3
+
+\newpage
+
+# Appendix (R-code)
+
+```{r}
+library(tidyverse)
+library(ggcorrplot)
+library(lattice)
+library(psych)
+library(DataExplorer)
+library(car)
+library(caret)
+library(scales)
+library(modelr)
+library(broom)
+library(cowplot)
+library(pROC)
+library(caTools)
+options(warn=-1)
+df <- read.csv("data.csv")
+library(dplyr)
+glimpse(df)
+
+library(ggplot2)
+library(cowplot)  # for plot_grid
+
+#dataframe
+df$diagnosis <- factor(df$diagnosis, labels = c("Benign", "Malignant"))
+# move target to column 1, order by target, remove the X33 column
+df <- df %>% select(diagnosis, everything(), - c(id,X)) %>%
+  arrange(diagnosis)
+
+c1 <- df %>% select(everything()) 
+# change diagnosis to numeric between 0 & 1
+c1$diagnosis <- as.numeric(c1$diagnosis)-1
+
+#---------------------------------------------#
+#####      create correlation matrix   ########
+#---------------------------------------------#
+
+cor <- cor(c1)
+#names(c1) # gather all the column names
+cols = c("diagnosis",
+         "radius_mean",            
+         "texture_mean",
+         "perimeter_mean",         
+         "area_mean",
+         "smoothness_mean",        
+         "compactness_mean",
+         "concavity_mean",         
+         "concave_points_mean",
+         "symmetry_mean",
+         "fractal_dimension_mean",
+         "radius_se",              
+         "texture_se",
+         "perimeter_se",           
+         "area_se",
+         "smoothness_se",          
+         "compactness_se",
+         "concavity_se",           
+         "concave_points_se",
+         "symmetry_se",            
+         "fractal_dimension_se",
+         "radius_worst",           
+         "texture_worst",
+         "perimeter_worst",        
+         "area_worst",
+         "smoothness_worst",       
+         "compactness_worst",
+         "concavity_worst",        
+         "concave_points_worst",
+         "symmetry_worst",         
+         "fractal_dimension_worst")
+# stack the correlations
+cor <- as_tibble(reshape2::melt(cor, id = cols))
+# rename the columns appropriately
+colnames(cor) <- c("Target", "Variable", "Correlation")
+
+#------------------------------------------#
+####    pick the target variables C1    ####
+#------------------------------------------#
+
+C <- cor[which(cor$Target == "diagnosis"),]
+C <- C[order(- abs(C$Correlation)), ]
+C <- subset(C, abs(C$Correlation) > 0.10); C
+
+c2 <- c1 %>% select(diagnosis,               
+                    concave.points_worst,
+                    perimeter_worst,        
+                    concave.points_mean,
+                    radius_worst,
+                    perimeter_mean,         
+                    area_worst,
+                    radius_mean,
+                    area_mean,              
+                    concavity_mean,
+                    concavity_worst,
+                    compactness_mean,       
+                    compactness_worst,
+                    radius_se,
+                    perimeter_se,           
+                    area_se,
+                    texture_worst,
+                    smoothness_worst,       
+                    symmetry_worst,
+                    texture_mean,
+                    concave.points_se,      
+                    smoothness_mean,
+                    symmetry_mean,
+                    fractal_dimension_worst,
+                    compactness_se,
+                    concavity_se)
+
+corr <- round(cor(c2, use="complete.obs"), 2)
+options(repr.plot.width=3, repr.plot.height=3)
+ggcorrplot(corr, lab = TRUE, colors = c("aquamarine", "white", "dodgerblue"), 
+           show.legend = F, outline.color = "gray", type = "upper", #hc.order = T,  
+           tl.cex = 5, lab_size = 2, sig.level = .2) +
+  labs(fill = "Correlation")
+
+
+# ----- area_mean -------
+a = ggplot(df, aes(area_mean, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = TRUE, alpha = 0.7) + 
+  labs(title = "Area Mean", x = "Area Mean") + 
+  scale_fill_manual(values=c('#1f77b4', '#ff7f0e')) +  # Blue for benign, Orange for malignant
+  scale_color_manual(values=c('#1f77b4', '#ff7f0e')) +  # Blue for benign, Orange for malignant
+  theme_bw(base_size = 18) + 
+  theme(legend.position="bottom")
+
+# ----- texture_mean -------
+b = ggplot(df, aes(texture_mean, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = TRUE, alpha = 0.7) + 
+  labs(title = "Texture Mean", x = "Texture Mean") + 
+  scale_fill_manual(values=c('#2ca02c', '#d62728')) +  # Green for benign, Red for malignant
+  scale_color_manual(values=c('#2ca02c', '#d62728')) +  # Green for benign, Red for malignant
+  theme_bw(base_size = 18) + 
+  theme(legend.position="bottom")
+
+# Set plot dimensions
+options(repr.plot.width = 16, repr.plot.height = 8)
+
+# Combine the plots side by side
+plot_grid(a, b, ncol = 2, nrow = 1)
+
+a = ggplot(df,aes(symmetry_mean, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = T, alpha = 0.7) + 
+  labs(title = "Symmetry Mean", x = "Perimeter Mean") + 
+  scale_fill_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  scale_color_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  theme_bw(base_size = 18) + theme(legend.position="bottom")
+
+b = ggplot(df,aes(texture_se, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = T, alpha = 0.7) + 
+  labs(title = "Texture SE", x = "Area Mean") + 
+  scale_fill_manual(values=c('#2ca02c', '#d62728')) + 
+  scale_color_manual(values=c('#2ca02c', '#d62728')) + 
+  theme_bw(base_size = 18) + theme(legend.position="bottom")
+
+# Set plot dimensions
+options(repr.plot.width = 16, repr.plot.height = 8)
+
+plot_grid(a,b, ncol = 2, nrow = 1)
+
+
+a = ggplot(df,aes(fractal_dimension_se, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = T, alpha = 0.7) + 
+  labs(title = "Fractal Dimension SE", x = "Perimeter Mean") + 
+  scale_fill_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  scale_color_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  theme_bw(base_size = 18) + theme(legend.position="bottom")
+
+b = ggplot(df,aes(fractal_dimension_worst, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = T, alpha = 0.7) + 
+  labs(title = "Fractal Dimension Worst", x = "Area Mean") + 
+  scale_fill_manual(values=c('#2ca02c', '#d62728')) + 
+  scale_color_manual(values=c('#2ca02c', '#d62728')) + 
+  theme_bw(base_size = 18) + theme(legend.position="bottom")
+
+# Set plot dimensions
+options(repr.plot.width = 16, repr.plot.height = 8)
+
+plot_grid(a,b, ncol = 2, nrow = 1)
+
+
+a = ggplot(df,aes(symmetry_worst, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 3, show.legend = T, alpha = 0.7) + 
+  labs(title = "Symmetry Worst", x = "Perimeter Mean") + 
+  scale_fill_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  scale_color_manual(values=c('#1f77b4', '#ff7f0e')) + 
+  theme_bw(base_size = 18) + theme(legend.position="bottom")
+
+# Set plot dimensions
+options(repr.plot.width = 16, repr.plot.height = 8)
+
+plot_grid(a,b, ncol = 1, nrow = 1)
+
+#--------------------------------------#
+######      Multicollinearity     ######
+#--------------------------------------#
+
+# model 1
+# Step 1) Dropping response variable (Y)
+m <- subset(c1, select = -c(diagnosis))
+mc <- cor(m)
+# Checking Variables that are highly correlated
+highlyCorrelated = findCorrelation(mc, cutoff=0.8)
+highlyCorCol = colnames(m)[highlyCorrelated]
+highlyCorCol
+
+###    Remove Correlated Variables    ####
+
+# Remove highly correlated variables from the original 
+# dataset and create a new dataset
+df <- df[, -which(colnames(df) %in% highlyCorCol)]
+final_features = colnames(df)
+final_features
+
+# Updated ggplot code with more creative color scheme and plot adjustments
+ggplot(df, aes(diagnosis, fill = diagnosis)) + 
+  geom_bar(stat = "count", show.legend = FALSE) +  # Hide the legend for simplicity
+  scale_fill_manual(values = c('#F15B40', '#0099FF')) +  # Use distinct colors for the two categories
+  labs(
+    title = "Breast Cancer Diagnosis Distribution",
+    subtitle = "Counts of Malignant vs Benign",
+    x = "",
+    y = "Count"
+  ) + 
+  theme_minimal(base_size = 28) +  # Use minimal theme for a cleaner look
+  theme(
+    plot.title = element_text(size = 22, face = "bold", color = '#3D3D3D'),
+    plot.subtitle = element_text(size = 14, face = "italic", color = '#3D3D3D'),
+    axis.text = element_text(size = 14, color = '#3D3D3D'),
+    axis.title = element_text(size = 16, face = "bold", color = '#3D3D3D'),
+    panel.grid.major = element_line(color = 'gray90', size = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.background = element_rect(fill = '#F7F7F7', color = '#F7F7F7'),
+    axis.ticks = element_line(color = '#3D3D3D')
+  ) +
+  geom_text(stat = 'count', aes(label = ..count..), vjust = -0.5, size = 6, color = '#3D3D3D')
+
+
+# Enhanced ggplot code with better colors, theme, and labels
+a = ggplot(df, aes(area_mean, fill = diagnosis, color = diagnosis)) + 
+  geom_density(lwd = 2, show.legend = TRUE, alpha = 0.5) +  # Slightly thinner lines and more transparency
+  labs(
+    title = "Distribution of Area Mean",
+    subtitle = "Density plot for Area Mean based on Diagnosis",
+    x = "Area Mean",
+    y = "Density"
+  ) + 
+  scale_fill_manual(values = c('#FFCC99', '#1F77B4')) +  # Pastel fill for better visibility
+  scale_color_manual(values = c('#FF5733', '#3E8E41')) +  # Distinct line colors (stronger contrast)
+  theme_minimal(base_size = 16) +  # Minimal theme for cleaner look
+  theme(
+    plot.title = element_text(size = 20, face = "bold", color = '#333333'),
+    plot.subtitle = element_text(size = 14, face = "italic", color = '#666666'),
+    axis.text = element_text(size = 14, color = '#333333'),
+    axis.title = element_text(size = 16, face = "bold", color = '#333333'),
+    legend.position = "bottom",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    panel.grid.major = element_line(color = 'gray90', size = 0.5),
+    panel.grid.minor = element_blank(),
+    plot.background = element_rect(fill = '#F7F7F7', color = '#F7F7F7'),
+    axis.ticks = element_line(color = '#333333')
+  )
+
+# Display the plot
+print(a)
+
+
+### Cross-Validation ###
+df1 <- df %>% select(diagnosis, everything())
+
+# subset predictors variables
+df_x <- df %>% select(-diagnosis)
+
+# subset response variable
+df_y <- df$diagnosis
+
+# create indices for each fold
+my_folds <- createFolds(df_y, k = 10)
+
+# structure of "my_fold"
+my_folds %>% glimpse
+
+# distribution of class is preserved in each fold
+my_folds %>% 
+  map_df(~prop.table(table(df_y[.])))
+
+# create trainControl object
+my_trainControl <- trainControl(
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE,
+  verboseIter = FALSE,
+  savePredictions = TRUE,
+  index = my_folds)
+
+# First logistic regression model
+model <- train(diagnosis ~ ., data = df1, method = "glm", family = "binomial", trControl = my_trainControl)
+
+# Get summary of the model
+model_summary <- summary(model)
+
+model_summary 
+
+roc_curve <- roc(model$pred$obs, model$pred$M)  # assuming 'Yes' is the positive class
+plot(roc_curve, main = "ROC Curve for Logistic Regression Model", 
+     col = "blue", lwd = 2, print.auc = TRUE, 
+     print.auc.x = 0.6, print.auc.y = 0.2,
+     xlim = c(1, 0))  # Show AUC on the plot
+# Extract p-values
+p_values <- model_summary$coefficients[, 4]
+
+# Identify predictors with p-values less than 0.05 (ignoring the intercept)
+significant_vars <- names(p_values)[p_values < 0.05 & names(p_values) != "(Intercept)"]
+
+# Create a new dataframe with only significant predictors
+df_significant <- df %>% select(all_of(significant_vars), diagnosis)
+
+# View the new dataframe
+head(df_significant)
+
+# Second logistic regression model
+model2 <- train(diagnosis ~ ., data = df_significant, method = "glm", family = "binomial", trControl = my_trainControl)
+
+model_summary2 <- summary(model2)
+
+model_summary2
+# View the results
+print(model2)
+
+# Display cross-validation results
+model2$results
+
+# Predict on the full dataset (or use a separate test set if available)
+predictions2 <- predict(model2, df_significant)
+
+# Confusion matrix for evaluation
+conf_matrix <- confusionMatrix(predictions2, df_significant$diagnosis, positive = "Malignant")
+print(conf_matrix)
+
+predictions1 <- predict(model, df)
+
+# Confusion matrix for evaluation
+conf_matrix1 <- confusionMatrix(predictions1, df$diagnosis)
+print(conf_matrix)
+
+
+# ROC curve (Receiver Operating Characteristic)
+library(pROC)
+roc_curve <- roc(model2$pred$obs, model2$pred$M)  # assuming 'Yes' is the positive class
+plot(roc_curve, main = "ROC Curve for Logistic Regression Model", 
+     col = "blue", lwd = 2, print.auc = TRUE, 
+     print.auc.x = 0.6, print.auc.y = 0.2,
+     xlim = c(1, 0))  # Show AUC on the plot
+
+# Null deviance and Residual deviance
+null_deviance <- model2$finalModel$null.deviance
+residual_deviance <- model2$finalModel$deviance
+
+# Deviance goodness of fit
+deviance_goodness_of_fit <- null_deviance - residual_deviance
+cat("Deviance Goodness of Fit:", deviance_goodness_of_fit, "\n")
+cat("Null Deviance:", null_deviance, "\n")
+cat("Residual Deviance:", residual_deviance, "\n")
+
+# McFadden's Pseudo R-Squared
+pseudo_r_squared <- 1 - (residual_deviance / null_deviance)
+cat("McFadden's Pseudo R-Squared:", pseudo_r_squared, "\n")
+
+
+# Extract AIC from the final fitted model
+aic_value <- AIC(model2$finalModel) 
+
+# Print the AIC value
+cat("Akaike Information Criterion (AIC):", aic_value, "\n")
+
+
+# Extract AIC from the final fitted model
+aic_value <- AIC(model$finalModel) 
+
+# Print the AIC value
+cat("Akaike Information Criterion (AIC):", aic_value, "\n")
+
+#   Model 1 binned plot   ####
+library(car)
+x <-predict(model2$finalModel)
+y <- resid(model2$finalModel)
+# binnedplot(x,y) 
+
+
+### Lasso Regression ###
+
+df1 <- read.csv("data.csv")
+
+# glimpse raw data
+df1 %>% glimpse
+
+df1 <- df1[, !colnames(df1) %in% c("id", "X")]
+
+# convert diagnosis as factor
+df1$diagnosis <- as.factor(df1$diagnosis)
+
+# subset predictor variable
+df_x <- df1 %>% dplyr::select(-diagnosis)
+
+# subset response variable
+df_y <- df1$diagnosis
+
+# create indices for each fold
+my_folds <- createFolds(df_y, k = 10)
+
+my_folds %>% 
+  map_df(~prop.table(table(df_y[.])))
+
+# create trainControl object
+my_trainControl <- trainControl(
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE,
+  verboseIter = FALSE,
+  savePredictions = TRUE,
+  index = my_folds)
+
+# train glmnet model
+model_glmnet <- train(x = df_x, y = df_y, 
+                      method = "glmnet",
+                      metric = "ROC",
+                      tuneLength = 3,
+                      trControl = my_trainControl)
+
+# print model
+model_glmnet
+
+model_glmnet$results %>% 
+  as.tibble %>%  
+  arrange(desc(ROC))
+
+plot(model_glmnet)
+
+# Print the best AUC value from the training process
+best_auc <- model_glmnet$results$ROC[which.max(model_glmnet$results$ROC)]
+cat("Best AUC value:", best_auc, "\n")
+
+# Plot ROC curve (AUC) for different lambda values
+ggplot(model_glmnet$results, aes(x = lambda, y = ROC)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "AUC vs. Lambda for GLMNET Model",
+       x = "Lambda",
+       y = "AUC (ROC)") +
+  theme_minimal()
+
+
+# Importance ofn variables
+plot(varImp(model_glmnet, scale = FALSE), top = 10, main = "glmnet")
+
+```
+
+
